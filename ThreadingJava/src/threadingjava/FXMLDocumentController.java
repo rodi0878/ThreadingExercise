@@ -1,4 +1,3 @@
-
 package threadingjava;
 
 import java.net.URL;
@@ -17,9 +16,17 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private ImageView image;
 
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+    }
+
+    private AlgorithmBase createAlgorithm() {
+        return new Mandelbrot();
+    }
+
     @FXML
     private void handleButtonSync(ActionEvent event) {
-        NewtonSolver ns = new NewtonSolver();
+        AlgorithmBase ns = createAlgorithm();
         ns.startTimeMeasurement();
         ns.solve();
         ns.stopTimeMeasurement();
@@ -35,17 +42,11 @@ public class FXMLDocumentController implements Initializable {
         // TODO: solve problem using Thread class (thread for each processor)
         // TODO: solve problem using thread pool
         // TODO: solve problem using completable futures (try different ways to do it)
-        
         // IMPORTANT: be aware of synchronization issues and blocking of UI thread
     }
 
     @FXML
     private void handleButtonCompletableFutureRows(ActionEvent event) {
-        // ...
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
     }
 
 }

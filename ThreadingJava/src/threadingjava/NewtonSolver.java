@@ -3,45 +3,29 @@ package threadingjava;
 import threadingjava.math.Polynome;
 import threadingjava.math.Complex;
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.WritableImage;
 
-public class NewtonSolver {
+public class NewtonSolver extends AlgorithmBase {
 
-    private double xmin = -1.5;
-    private double xmax = 1.5;
-    private double ymin = -1.5;
-    private double ymax = 1.5;
+    private final double xmin = -1.5;
+    private final double xmax = 1.5;
+    private final double ymin = -1.5;
+    private final double ymax = 1.5;
 
-    private int width = 600;
-    private int height = 600;
+    private final double xstep = (xmax - xmin) / width;
+    private final double ystep = (ymax - ymin) / height;
 
-    private double xstep = (xmax - xmin) / width;
-    private double ystep = (ymax - ymin) / height;
+    private final List<Complex> roots = Collections.synchronizedList(new ArrayList<>());
+    private final Polynome p = new Polynome();
+    private final Polynome pd;
 
-    private List<Complex> roots = new ArrayList<>();
-    private Polynome p = new Polynome();
-    private Polynome pd;
-
-    private long startTime;
-    private long stopTime;
-
-    private Color[] colours = new Color[]{
+    private final Color[] colours = new Color[]{
         Color.red, Color.blue, Color.green, Color.yellow, Color.orange, Color.magenta, Color.pink, Color.cyan, Color.gray
     };
 
-    private BufferedImage image;
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
+    private final Color[][] iraw = new Color[height][width];
 
     public NewtonSolver() {
         List<Complex> coef = p.getCoefficients();
@@ -51,51 +35,37 @@ public class NewtonSolver {
         coef.add(new Complex(1, 0));
 
         pd = p.derive();
-
-        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
     }
 
-    public BufferedImage getImage() {
-        return image;
-    }
-    
-    public WritableImage getImageFX() {
-        return SwingFXUtils.toFXImage(getImage(), null);
-    }
-
-    public void startTimeMeasurement() {
-        startTime = System.currentTimeMillis();
-    }
-
-    public void stopTimeMeasurement() {
-        stopTime = System.currentTimeMillis();
-    }
-
-    public double getDuration() {
-        double tmp = (stopTime - startTime) / 1000.0;
-        return Math.round(tmp * 1000) / 1000.0;
-    }
-
-    public void solve() {
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                solvePoint(j, i);
-            }
-        }
-    }
-
-    public void solveRow(int row) {
-        int i = row;
-        for (int j = 0; j < width; j++) {
-            solvePoint(j, i);
-        }
-    }
-
-    private void solvePoint(int j, int i) {
+    @Override
+    public void solvePoint(int j, int i) {
         // find "world" coordinates of pixel
-        double x = xmin + j * xstep;
-        double y = ymin + i * ystep;
+        final double x = xmin + j * xstep;
+        final double y = ymin + i * ystep;
+        Complex ox = createComplexNumber(x, y);
+
+        // find solution of equation using newton's iteration
+        float it = 0;
+        for (int q = 0; q < 30; q++) {
+            Complex diff = p.eval(ox).divide(pd.eval(ox));
+            ox = ox.subtract(diff);
+
+            if (diff.getRe() * diff.getRe() + diff.getIm() * diff.getIm() >= 0.5) {
+                q--;
+            }
+            it++;
+        }
+
+        // find solution root number
+        boolean known = false;
+        int id = findRootId(ox, known, 0);
+
+        Color vv = createColor(id, it);
+
+        setColor(j, i, vv);
+    }
+
+    private Complex createComplexNumber(double x, double y) {
         Complex ox = new Complex(x, y);
         if (ox.getRe() == 0) {
             ox.setRe(0.0001);
@@ -103,25 +73,20 @@ public class NewtonSolver {
         if (ox.getIm() == 0) {
             ox.setIm(0.0001);
         }
-        
-        //Console.WriteLine(ox);
-        // find solution of equation using newton's iteration
-        float it = 0;
-        for (int q = 0; q < 30; q++) {
-            Complex diff = p.eval(ox).divide(pd.eval(ox));
-            ox = ox.subtract(diff);
+        return ox;
+    }
 
-            //Console.WriteLine($"{q} {ox} -({diff})");
-            if (Math.pow(diff.getRe(), 2) + Math.pow(diff.getIm(), 2) >= 0.5) {
-                q--;
-            }
-            it++;
-        }
-        
-        //Console.ReadKey();
-        // find solution root number
-        boolean known = false;
-        int id = 0;
+    private void setColor(int j, int i, Color vv) {
+        image.setRGB(j, i, vv.getRGB());
+    }
+
+    private Color createColor(int id, float it) {
+        Color vv = colours[id % colours.length];
+        vv = new Color(Math.min(Math.max(0, vv.getRed() - (int) it * 4), 255), Math.min(Math.max(0, vv.getGreen() - (int) it * 4), 255), Math.min(Math.max(0, vv.getBlue() - (int) it * 4), 255));
+        return vv;
+    }
+
+    private int findRootId(Complex ox, boolean known, int id) {
         for (int w = 0; w < roots.size(); w++) {
             if (Math.pow(ox.getRe() - roots.get(w).getRe(), 2) + Math.pow(ox.getIm() - roots.get(w).getIm(), 2) <= 0.01) {
                 known = true;
@@ -131,15 +96,7 @@ public class NewtonSolver {
         if (!known) {
             roots.add(ox);
             id = roots.size();
-            //maxid = id + 1;
         }
-        
-        Color vv = colours[id % colours.length];
-        //vv = Color.FromArgb(vv.R, vv.G, vv.B);
-        vv = new Color(Math.min(Math.max(0, vv.getRed() - (int) it * 4), 255), Math.min(Math.max(0, vv.getGreen() - (int) it * 4), 255), Math.min(Math.max(0, vv.getBlue() - (int) it * 4), 255));
-        //vv = Math.Min(Math.Max(0, vv), 255);
-        
-        // TODO: thread safe access??
-        image.setRGB(j, i, vv.getRGB());
+        return id;
     }
 }
