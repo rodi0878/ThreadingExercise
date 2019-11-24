@@ -6,13 +6,15 @@
         xmlns:local="clr-namespace:ThreadingCSharp"
         mc:Ignorable="d"
         Title="MainWindow" Height="317.495" Width="484.225">
-    <Grid Margin="0,0,-3,0">
-        <Button Content="Sync" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="SyncClick"/>
+    <Grid Margin="0,0,-2.714,0.143">
         <Border x:Name="ImageBorder" BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="260" Margin="186,12,0,0" VerticalAlignment="Top" Width="271">
-            <Image x:Name="ImageBox" Margin="-1" Stretch="None" HorizontalAlignment="Right" Width="271" Height="260" VerticalAlignment="Bottom"/>
+            <Image x:Name="ImageBox" Margin="-1.143,-1.143,-1.286,-0.571" Stretch="None" Height="260" VerticalAlignment="Top"/>
         </Border>
-        <Button Content="Thread" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="75" Click="ThreadClick"/>
+
+        <Button Content="Sync" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="SyncClick"/>
         <TextBlock x:Name="DurationText" HorizontalAlignment="Left" Margin="98,12,0,0" TextWrapping="Wrap" Text="-duration-" VerticalAlignment="Top"/>
+        
+        <Button Content="Thread" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="75" Click="ThreadClick"/>
         <Button Content="Thread 2" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Width="75" Click="Thread2Click"/>
 
     </Grid>

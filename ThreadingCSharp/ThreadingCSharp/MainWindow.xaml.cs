@@ -21,7 +21,7 @@ namespace ThreadingCSharp
     /// </summary>
     public partial class MainWindow : Window
     {
-        NewtonSolver ns;
+        AlgorithmBase algorithm;
 
         public MainWindow()
         {
@@ -30,26 +30,26 @@ namespace ThreadingCSharp
 
         private void Prepare()
         {
-            ns = new NewtonSolver();
-            ns.Prepare();
+            algorithm = new Mandelbrot();
+            algorithm.Prepare();
 
-            ns.StartTimeMeasurement();
+            algorithm.StartTimeMeasurement();
         }
 
         private void Finish()
         {
-            ns.StopTimeMeasurement();
+            algorithm.StopTimeMeasurement();
 
-            DurationText.Text = ns.Duration.ToString();
+            DurationText.Text = algorithm.Duration.ToString();
         }
 
         private void SyncClick(object sender, RoutedEventArgs e)
         {
             Prepare();
-            ns.Solve();
+            algorithm.Solve();
             Finish();
 
-            ImageBox.Source = ns.GetWPFBitmapSource();
+            ImageBox.Source = algorithm.GetWPFBitmapSource();
         }
 
         private void ThreadClick(object sender, RoutedEventArgs e)
@@ -65,7 +65,6 @@ namespace ThreadingCSharp
 
         private void Thread2Click(object sender, RoutedEventArgs e)
         {
-           
         }
     }
 }

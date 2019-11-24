@@ -9,12 +9,8 @@ using System.Windows;
 
 namespace ThreadingCSharp
 {
-    class NewtonSolver
+    class NewtonSolver : AlgorithmBase
     {
-        public int Width { get; set; } = 300;
-        public int Height { get; set; } = 300;
-
-        Bitmap bmp;
         double xmin = -1.5;
         double xmax = 1.5;
         double ymin = -1.5;
@@ -33,12 +29,7 @@ namespace ThreadingCSharp
         Polynome p = new Polynome();
         Polynome pd;
 
-        DateTime startTime;
-        DateTime stopTime;
-
-        public double Duration => (stopTime - startTime).TotalSeconds;
-
-        public void Prepare()
+        public override void Prepare()
         {
             bmp = new Bitmap(Width, Height);
             xstep = (xmax - xmin) / Width;
@@ -47,39 +38,11 @@ namespace ThreadingCSharp
             p.Coefficients.Add(new ComplexNumber() { Re = 1 });
             p.Coefficients.Add(ComplexNumber.Zero);
             p.Coefficients.Add(ComplexNumber.Zero);
-            //p.Coe.Add(ComplexNumber.Zero);
             p.Coefficients.Add(new ComplexNumber() { Re = 1 });
             pd = p.Derive();
-
         }
 
-        public void StartTimeMeasurement()
-        {
-            startTime = DateTime.Now;
-        }
-
-        public void StopTimeMeasurement()
-        {
-            stopTime = DateTime.Now;
-        }
-
-        public BitmapSource GetWPFBitmapSource()
-        {
-            return System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(bmp.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()); ;
-        }
-
-        public void Solve()
-        {
-            for (int i = 0; i < Height; i++)
-            {
-                for (int j = 0; j < Width; j++)
-                {
-                    SolvePoint(i, j);
-                }
-            }
-        }
-
-        private void SolvePoint(int i, int j)
+        public override void SolvePoint(int i, int j)
         {
             // find "world" coordinates of pixel
             double x = xmin + j * xstep;
@@ -105,15 +68,12 @@ namespace ThreadingCSharp
                 var diff = p.Eval(ox).Divide(pd.Eval(ox));
                 ox = ox.Subtract(diff);
 
-                //Console.WriteLine($"{q} {ox} -({diff})");
                 if (Math.Pow(diff.Re, 2) + Math.Pow(diff.Im, 2) >= 0.5)
                 {
                     q--;
                 }
                 it++;
             }
-
-            //Console.ReadKey();
 
             // find solution root number
             var known = false;
@@ -133,14 +93,11 @@ namespace ThreadingCSharp
             }
 
             // colorize pixel according to root number
-            //int vv = id;
-            //int vv = id * 50 + (int)it*5;
             var vv = clrs[id % clrs.Length];
             vv = Color.FromArgb(vv.R, vv.G, vv.B);
             vv = Color.FromArgb(Math.Min(Math.Max(0, vv.R - (int)it * 2), 255), Math.Min(Math.Max(0, vv.G - (int)it * 2), 255), Math.Min(Math.Max(0, vv.B - (int)it * 2), 255));
-            //vv = Math.Min(Math.Max(0, vv), 255);
+
             bmp.SetPixel(j, i, vv);
-            //bmp.SetPixel(j, i, Color.FromArgb(vv, vv, vv));
         }
     }
 }
